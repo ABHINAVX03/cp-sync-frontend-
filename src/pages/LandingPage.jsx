@@ -4,6 +4,7 @@ import Stats from "@/components/common/Stats";
 import Features from "@/components/common/Features";
 import HowItWorks from "@/components/common/HowItWorks";
 import Footer from "@/components/layout/Footer";
+import RequestAccess from "@/components/common/RequestAccess";
 
 export default function LandingPage() {
   return (
@@ -14,6 +15,7 @@ export default function LandingPage() {
         <Stats />
         <Features />
         <HowItWorks />
+        <RequestAccess />  
       </main>
       <Footer />
     </div>
