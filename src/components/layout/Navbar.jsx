@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl, isLoggedIn, clearToken } from "@/lib/auth";
+import { getLoginUrl, isLoggedIn, clearToken, getUserEmail } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
@@ -10,6 +10,8 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const loggedIn = isLoggedIn();
+  const userEmail = getUserEmail();
+  const isAdmin = userEmail === "guptaabhinav697@gmail.com";
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -85,10 +87,21 @@ export default function Navbar() {
                   Profile
                 </Button>
               </Link>
+              {isAdmin && (
+                <Link to="/admin">
+                  <Button
+                    variant={location.pathname === "/admin" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="rounded-lg"
+                  >
+                    Admin
+                  </Button>
+                </Link>
+              )}
             </>
           )}
 
-          {/* GitHub link – more subtle now */}
+          {/* GitHub link */}
           <a
             href="https://github.com/ABHINAVX03/cp-sync-frontend-"
             target="_blank"
@@ -135,6 +148,13 @@ export default function Navbar() {
                   Profile
                 </button>
               </Link>
+              {isAdmin && (
+                <Link to="/admin" onClick={() => setMenuOpen(false)}>
+                  <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary transition-colors">
+                    Admin
+                  </button>
+                </Link>
+              )}
             </>
           )}
           <a
@@ -160,7 +180,7 @@ export default function Navbar() {
   );
 }
 
-// --- Icons (unchanged) ---
+// --- Icons ---
 function GitHubIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

@@ -6,6 +6,7 @@ import ErrorBoundary from "./ErrorBoundary";
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const DashboardPage = React.lazy(() => import("./pages/Dashboard"));
 const ProfilePage = React.lazy(() => import("./pages/ProfilePage"));
+const AdminPage = React.lazy(() => import("./pages/AdminPage"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -26,6 +27,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

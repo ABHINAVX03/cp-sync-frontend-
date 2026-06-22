@@ -26,6 +26,7 @@ client.interceptors.response.use(
 );
 
 export const api = {
+  // Existing endpoints
   getContests: () => client.get("/contests").then((r) => r.data),
   getProfile: () => client.get("/user/profile").then((r) => r.data),
   updatePlatforms: (platforms) =>
@@ -33,4 +34,8 @@ export const api = {
   pauseSync: () => client.put("/user/pause").then((r) => r.data),
   resumeSync: () => client.put("/user/resume").then((r) => r.data),
   triggerSync: () => client.post("/sync").then((r) => r.data),
+
+  // Admin endpoints
+  getAdminUsers: () => client.get("/admin/users").then((r) => r.data),
+  getAdminAccessRequests: () => client.get("/admin/access-requests").then((r) => r.data),
 };
