@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -6,44 +6,6 @@ export default function RequestAccess() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(null); // "loading" | "success" | "error"
   const [message, setMessage] = useState("");
-  const [serverReady, setServerReady] = useState(false);
-  const [waking, setWaking] = useState(false);
-  const [wakeFailed, setWakeFailed] = useState(false);
-  const wakeAttemptsRef = useRef(0);
-  const maxWakeAttempts = 3;
-
-  // Pre‑warm the backend as soon as the component mounts
-  useEffect(() => {
-    wakeUpServer();
-  }, []);
-
-  async function wakeUpServer() {
-    setWaking(true);
-    setWakeFailed(false);
-
-    for (let i = 0; i < maxWakeAttempts; i++) {
-      try {
-        const res = await fetch(
-          "https://cp-sync-backend.onrender.com/actuator/health",
-          { signal: AbortSignal.timeout(15000) } // 15s per try
-        );
-        if (res.ok) {
-          setServerReady(true);
-          setWaking(false);
-          return;
-        }
-      } catch (e) {
-        // continue to next attempt
-      }
-      wakeAttemptsRef.current++;
-      // wait a bit before the next attempt (the cold start might be in progress)
-      await new Promise((r) => setTimeout(r, 5000));
-    }
-
-    // All attempts failed
-    setWakeFailed(true);
-    setWaking(false);
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -63,7 +25,7 @@ export default function RequestAccess() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
-          signal: AbortSignal.timeout(30000), // 30s, server should be warm now
+          signal: AbortSignal.timeout(30000), // 30s timeout – server is already warm
         }
       );
 
@@ -78,7 +40,7 @@ export default function RequestAccess() {
         setStatus("error");
       }
     } catch (e) {
-      setMessage("Network error. The server might still be starting. Please wait a moment and try again.");
+      setMessage("Network error. The server might be temporarily unavailable. Please try again in a moment.");
       setStatus("error");
     }
   }
@@ -90,23 +52,6 @@ export default function RequestAccess() {
         <p className="text-sm text-muted-foreground mb-6">
           We're in testing mode. Enter your email and we'll add you as an approved user within 12 hours.
         </p>
-
-        {/* Show pre‑warm status */}
-        {waking && (
-          <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
-            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Waking up the server (free tier)… This may take up to a minute.
-          </div>
-        )}
-
-        {wakeFailed && (
-          <div className="mb-4 text-sm text-red-400">
-            The server is not responding. It may be down for maintenance. Please try again later.
-          </div>
-        )}
 
         <AnimatePresence mode="wait">
           {status === "success" ? (
@@ -134,23 +79,17 @@ export default function RequestAccess() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                disabled={!serverReady}
-                className="w-full h-12 rounded-xl border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 disabled:opacity-50"
+                className="w-full h-12 rounded-xl border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
               />
               <Button
                 type="submit"
                 size="lg"
                 className="w-full"
                 loading={status === "loading"}
-                disabled={!serverReady || status === "loading"}
+                disabled={status === "loading"}
               >
                 {status === "loading" ? "Submitting..." : "Request Access"}
               </Button>
-              {!serverReady && !waking && !wakeFailed && (
-                <p className="text-xs text-muted-foreground">
-                  Waiting for the server to wake up…
-                </p>
-              )}
               {status === "error" && (
                 <p className="text-sm text-red-400">{message}</p>
               )}
