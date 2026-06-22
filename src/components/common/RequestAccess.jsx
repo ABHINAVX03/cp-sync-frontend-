@@ -1,3 +1,4 @@
+// src/components/common/RequestAccess.jsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,7 +26,7 @@ export default function RequestAccess() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
-          signal: AbortSignal.timeout(30000), // 30s timeout – server is already warm
+          signal: AbortSignal.timeout(30000),
         }
       );
 
