@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -50,8 +50,7 @@ export default function DashboardPage() {
   const [contests, setContests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [hasSynced, setHasSynced] = useState(false); // Tracks if sync already happened
-  const [syncMsg, setSyncMsg] = useState(null); // { type: "success" | "error", text: string }
+  const [syncMsg, setSyncMsg] = useState(null);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState("All");
@@ -68,7 +67,7 @@ export default function DashboardPage() {
   // Auto-dismiss sync message
   useEffect(() => {
     if (!syncMsg) return;
-    const t = setTimeout(() => setSyncMsg(null), 8000); // Extended slightly so they have time to read it
+    const t = setTimeout(() => setSyncMsg(null), 8000);
     return () => clearTimeout(t);
   }, [syncMsg]);
 
@@ -86,11 +85,10 @@ export default function DashboardPage() {
   }
 
   async function handleSync() {
-    // 1. Prevent multiple syncs
-    if (hasSynced) {
-      setSyncMsg({ 
-        type: "error", 
-        text: "Sync already completed! Please check your Google Calendar or refresh the page to sync again." 
+    if (contests.length === 0) {
+      setSyncMsg({
+        type: "error",
+        text: "Please enable at least one platform before syncing.",
       });
       return;
     }
@@ -98,23 +96,17 @@ export default function DashboardPage() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      // 2. Artificial delay (1.5s) to guarantee the user sees the cool animation
-      // (Remove this Promise if you prefer it to be instant)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
       await api.triggerSync();
-      
-      setHasSynced(true);
-      // 3. Updated success notification
-      setSyncMsg({ 
-        type: "success", 
-        text: "Synced successfully! Please check or refresh your Google Calendar." 
+
+      setSyncMsg({
+        type: "success",
+        text: "Synced successfully! Please check or refresh your Google Calendar.",
       });
       setLastSynced(new Date());
     } catch (e) {
-      setSyncMsg({ 
-        type: "error", 
-        text: e.response?.data?.error || "Sync failed. Please try again." 
+      setSyncMsg({
+        type: "error",
+        text: e.response?.data?.error || "Sync failed. Please try again.",
       });
     } finally {
       setSyncing(false);
@@ -150,7 +142,7 @@ export default function DashboardPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      {/* --- COOL SYNCING OVERLAY --- */}
+      {/* SYNC OVERLAY */}
       <AnimatePresence>
         {syncing && (
           <motion.div
@@ -170,13 +162,11 @@ export default function DashboardPage() {
               <div className="absolute h-full w-full animate-pulse bg-primary/10 blur-[60px]" />
 
               <div className="relative z-10 mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 border border-primary/30">
-                {/* Spinning Ring */}
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                   className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent border-l-transparent opacity-70"
                 />
-                {/* Inner pulsing icon */}
                 <motion.div
                   animate={{ scale: [1, 1.15, 1] }}
                   transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
@@ -201,7 +191,6 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* --------------------------- */}
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-6 py-8 relative">
         {/* Header */}
@@ -236,16 +225,59 @@ export default function DashboardPage() {
               onClick={handleSync}
               loading={syncing}
               size="sm"
-              variant={hasSynced ? "secondary" : "default"}
+              variant="default"
             >
-              {hasSynced ? <CheckIcon /> : (!syncing && <CalendarSyncIcon />)}
-              {syncing ? "Syncing…" : hasSynced ? "Synced to Calendar" : "Sync to Calendar"}
+              {syncing ? (
+                <SpinnerIcon />
+              ) : (
+                <CalendarSyncIcon />
+              )}
+              {syncing ? "Syncing…" : "Sync to Calendar"}
             </Button>
           </div>
         </div>
 
+        {/* WELCOME BANNER */}
+        <AnimatePresence>
+          {!loading && contests.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-6"
+            >
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 border border-primary/30">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                    <polyline points="14 14 11 17 8 14" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-foreground">
+                    Welcome to Contest Tracker!
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Enable at least one platform in your settings to see upcoming contests and sync them to your calendar.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                >
+                  Enable Platforms
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Stats row */}
-        {!loading && (
+        {!loading && contests.length > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-6">
             <StatCard value={totalContests} label="Total upcoming" accent="oklch(0.75 0.18 285)" />
             <StatCard value={soonCount} label="Starting in 48h" accent="#facc15" />
@@ -295,27 +327,40 @@ export default function DashboardPage() {
         )}
 
         {/* Filters */}
-        <div className="mb-6 space-y-3">
-          <SearchBar value={search} onChange={setSearch} />
-          {!loading && (
-            <PlatformFilter
-              selected={platform}
-              onChange={setPlatform}
-              counts={platformCounts}
-            />
-          )}
-        </div>
+        {contests.length > 0 && (
+          <div className="mb-6 space-y-3">
+            <SearchBar value={search} onChange={setSearch} />
+            {!loading && (
+              <PlatformFilter
+                selected={platform}
+                onChange={setPlatform}
+                counts={platformCounts}
+              />
+            )}
+          </div>
+        )}
 
         {/* Contest list */}
         {loading ? (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => <ContestSkeleton key={i} />)}
           </div>
+        ) : contests.length === 0 ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Card className="py-16 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <h3 className="text-base font-semibold mb-1">No platforms enabled</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enable at least one platform in your settings to see contests.
+              </p>
+            </Card>
+          </motion.div>
         ) : filteredContests.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <Card className="py-16 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
@@ -355,6 +400,7 @@ export default function DashboardPage() {
   );
 }
 
+// --- ICONS ---
 function RefreshIcon({ className = "" }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -364,10 +410,19 @@ function RefreshIcon({ className = "" }) {
   );
 }
 
-function CalendarSyncIcon({ className = "" }) {
+function CalendarSyncIcon() {
   return (
-    <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="14 14 11 17 8 14"/>
+    </svg>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
   );
 }

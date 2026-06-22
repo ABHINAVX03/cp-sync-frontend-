@@ -7,7 +7,7 @@ import Footer from "@/components/layout/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch, Skeleton } from "@/components/ui/index.jsx";
-
+import { PLATFORM_CONFIG } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { clearToken, isLoggedIn } from "@/lib/auth";
 
@@ -106,7 +106,7 @@ export default function ProfilePage() {
             aria-label="Back"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M19 12H5m7-7l-7 7 7 7"/>
+              <path d="M19 12H5m7-7l-7 7 7 7" />
             </svg>
           </button>
           <h1 className="text-2xl font-black">Profile</h1>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
               exit={{ opacity: 0 }}
               className="ml-auto text-xs text-green-400 flex items-center gap-1"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
               Saved
             </motion.span>
           )}
@@ -227,12 +227,27 @@ export default function ProfilePage() {
                           )}
                         </div>
                       </div>
-                      <Switch
-                        checked={enabled}
-                        disabled={saving}
-                        onCheckedChange={(val) => togglePlatform(p, val)}
-                        label={`Toggle ${config.label}`}
-                      />
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`text-xs font-semibold px-2 py-1 rounded-full transition-all ${enabled
+                              ? "bg-green-500/15 text-green-400 border border-green-500/30"
+                              : "bg-zinc-700/40 text-zinc-400 border border-zinc-600"
+                            }`}
+                        >
+                          {enabled ? "ON" : "OFF"}
+                        </span>
+
+                        <Switch
+                          checked={enabled}
+                          disabled={saving}
+                          onCheckedChange={(val) => togglePlatform(p, val)}
+                          label={`Toggle ${config.label}`}
+                          className="
+      data-[state=checked]:bg-violet-600
+      data-[state=unchecked]:bg-zinc-600
+    "
+                        />
+                      </div>
                     </div>
                   );
                 })}
@@ -253,7 +268,7 @@ export default function ProfilePage() {
                   className="w-full"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
                   Sign out
                 </Button>

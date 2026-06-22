@@ -31,6 +31,7 @@ export function Switch({ checked = false, onCheckedChange, className, disabled =
     <button
       type="button"
       role="switch"
+      data-state={checked ? "checked" : "unchecked"}
       aria-checked={checked}
       disabled={disabled}
       onClick={() => !disabled && onCheckedChange?.(!checked)}
