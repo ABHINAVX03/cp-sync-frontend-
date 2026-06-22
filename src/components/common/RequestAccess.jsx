@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RequestAccess() {
@@ -15,14 +14,27 @@ export default function RequestAccess() {
       setStatus("error");
       return;
     }
+
     setStatus("loading");
+    setMessage("Waking up the server (free tier can take up to 60 seconds)...");
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 1‑minute timeout
+
     try {
-      const res = await fetch("https://cp-sync-backend.onrender.com/api/request-access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        "https://cp-sync-backend.onrender.com/api/request-access",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeout);
       const text = await res.text();
+
       if (res.ok) {
         setMessage("Request received! We'll activate your account within 12 hours.");
         setStatus("success");
@@ -32,7 +44,12 @@ export default function RequestAccess() {
         setStatus("error");
       }
     } catch (e) {
-      setMessage("Network error. Please try again.");
+      clearTimeout(timeout);
+      if (e.name === "AbortError") {
+        setMessage("The server took too long to respond. Please try again later.");
+      } else {
+        setMessage("Network error. Please try again.");
+      }
       setStatus("error");
     }
   }
@@ -73,9 +90,20 @@ export default function RequestAccess() {
                 required
                 className="w-full h-12 rounded-xl border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
               />
-              <Button type="submit" size="lg" className="w-full" loading={status === "loading"}>
-                Request Access
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                loading={status === "loading"}
+                disabled={status === "loading"}
+              >
+                {status === "loading" ? "Waking up server..." : "Request Access"}
               </Button>
+              {status === "loading" && (
+                <p className="text-xs text-muted-foreground">
+                  First request can take 30–60 seconds while the free server starts.
+                </p>
+              )}
               {status === "error" && (
                 <p className="text-sm text-red-400">{message}</p>
               )}
