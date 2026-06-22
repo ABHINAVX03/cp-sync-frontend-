@@ -6,7 +6,7 @@ const STEPS = [
   {
     num: "01",
     title: "Sign in with Google",
-    desc: "One click grants calendar access. No new account, no password.",
+    desc: "One click grants calendar access. No new account, no passwords.",
   },
   {
     num: "02",
@@ -16,13 +16,13 @@ const STEPS = [
   {
     num: "03",
     title: "Contests appear in Calendar",
-    desc: "CPSync pushes every upcoming contest automatically. Force-sync anytime.",
+    desc: "CPSync pushes every upcoming contest automatically. Sync manually anytime.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="relative mx-auto max-w-7xl px-6 py-28">
+    <section id="how-it-works" className="relative mx-auto max-w-7xl px-6 py-28">
       <div className="text-center mb-16">
         <motion.p
           initial={{ opacity: 0 }}
@@ -52,11 +52,10 @@ export default function HowItWorks() {
             transition={{ delay: i * 0.1 }}
             className="relative"
           >
-            {/* Connector line */}
             {i < STEPS.length - 1 && (
               <div className="hidden md:block absolute top-7 left-[calc(50%+3rem)] right-0 h-px bg-gradient-to-r from-border to-transparent" />
             )}
-            <div className="text-5xl font-black mb-4">{s.num}</div>
+            <div className="text-5xl font-black gradient-text mb-4">{s.num}</div>
             <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
           </motion.div>

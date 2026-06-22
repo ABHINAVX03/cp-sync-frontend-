@@ -160,7 +160,6 @@ export default function ProfilePage() {
                   <div className="min-w-0">
                     <p className="font-semibold text-foreground truncate">{profile.name || "User"}</p>
                     <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-0.5">ID #{profile.id}</p>
                   </div>
                 </div>
               </CardContent>
