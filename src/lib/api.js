@@ -38,4 +38,6 @@ export const api = {
   // Admin endpoints
   getAdminUsers: () => client.get("/admin/users").then((r) => r.data),
   getAdminAccessRequests: () => client.get("/admin/access-requests").then((r) => r.data),
+  approveAccessRequest: (id) => client.post(`/admin/approve/${id}`).then((r) => r.data),
+  manualApprove: (email) => client.post("/admin/manual-approve", { email }).then((r) => r.data),
 };
