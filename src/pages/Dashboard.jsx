@@ -64,7 +64,7 @@ export default function DashboardPage() {
     loadContests();
   }, [navigate]);
 
-  // Auto-dismiss sync message
+  // Auto-dismiss sync message after 8 seconds
   useEffect(() => {
     if (!syncMsg) return;
     const t = setTimeout(() => setSyncMsg(null), 8000);
@@ -95,25 +95,38 @@ export default function DashboardPage() {
 
     setSyncing(true);
     setSyncMsg(null);
+
     try {
       await api.triggerSync();
-
       setSyncMsg({
         type: "success",
         text: "Synced successfully! Please check or refresh your Google Calendar.",
       });
       setLastSynced(new Date());
     } catch (e) {
-      setSyncMsg({
-        type: "error",
-        text: e.response?.data?.error || "Sync failed. Please try again.",
-      });
+      const status = e.response?.status;
+      const data = e.response?.data;
+
+      if (status === 429) {
+        // Backend returns retryAfterSeconds in the body
+        const secs = data?.retryAfterSeconds ?? 300;
+        const mins = Math.ceil(secs / 60);
+        setSyncMsg({
+          type: "error",
+          text: `Sync limit reached. You can sync once every 5 minutes — try again in ${mins} minute${mins !== 1 ? "s" : ""}.`,
+        });
+      } else {
+        setSyncMsg({
+          type: "error",
+          text: data?.error || e.message || "Sync failed. Please try again.",
+        });
+      }
     } finally {
       setSyncing(false);
     }
   }
 
-  // Platform counts
+  // Platform counts for the filter pill badges
   const platformCounts = useMemo(() => {
     const counts = {};
     contests.forEach((c) => {
@@ -122,7 +135,7 @@ export default function DashboardPage() {
     return counts;
   }, [contests]);
 
-  // Filtered
+  // Filtered list based on search + platform
   const filteredContests = useMemo(() => {
     return contests.filter((c) => {
       const matchSearch = !search || c.name?.toLowerCase().includes(search.toLowerCase());
@@ -131,7 +144,6 @@ export default function DashboardPage() {
     });
   }, [contests, search, platform]);
 
-  // Stats
   const totalContests = contests.length;
   const soonCount = contests.filter(
     (c) => new Date(c.startTime) - new Date() < 86400000 * 2
@@ -142,7 +154,7 @@ export default function DashboardPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      {/* SYNC OVERLAY */}
+      {/* Sync overlay */}
       <AnimatePresence>
         {syncing && (
           <motion.div
@@ -212,32 +224,18 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button
-              onClick={loadContests}
-              variant="outline"
-              size="sm"
-              disabled={loading}
-            >
+            <Button onClick={loadContests} variant="outline" size="sm" disabled={loading}>
               <RefreshIcon className={loading ? "animate-spin" : ""} />
               Refresh
             </Button>
-            <Button
-              onClick={handleSync}
-              loading={syncing}
-              size="sm"
-              variant="default"
-            >
-              {syncing ? (
-                <SpinnerIcon />
-              ) : (
-                <CalendarSyncIcon />
-              )}
+            <Button onClick={handleSync} loading={syncing} size="sm" variant="default">
+              {syncing ? <SpinnerIcon /> : <CalendarSyncIcon />}
               {syncing ? "Syncing…" : "Sync to Calendar"}
             </Button>
           </div>
         </div>
 
-        {/* WELCOME BANNER */}
+        {/* Welcome banner — shown when user has no enabled platforms yet */}
         <AnimatePresence>
           {!loading && contests.length === 0 && (
             <motion.div
@@ -265,10 +263,7 @@ export default function DashboardPage() {
                     Enable at least one platform in your settings to see upcoming contests and sync them to your calendar.
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => navigate("/profile")}
-                >
+                <Button size="sm" onClick={() => navigate("/profile")}>
                   Enable Platforms
                 </Button>
               </div>
@@ -285,7 +280,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Sync message */}
+        {/* Sync message — success or error (including 429 rate limit) */}
         <AnimatePresence>
           {syncMsg && (
             <motion.div
@@ -311,7 +306,7 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
 
-        {/* Error */}
+        {/* Load error */}
         {error && (
           <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center gap-2">
             <AlertIcon />
@@ -400,7 +395,8 @@ export default function DashboardPage() {
   );
 }
 
-// --- ICONS ---
+// ── Icons ─────────────────────────────────────────────────────────────────────
+
 function RefreshIcon({ className = "" }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
