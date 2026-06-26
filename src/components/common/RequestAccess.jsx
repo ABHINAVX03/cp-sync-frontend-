@@ -31,13 +31,17 @@ export default function RequestAccess() {
       );
 
       const text = await res.text();
+      let data = null;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {}
 
       if (res.ok) {
-        setMessage("Request received! We'll activate your account within 12 hours.");
+        setMessage(data?.message || "Request received! We'll activate your account within 12 hours.");
         setStatus("success");
         setEmail("");
       } else {
-        setMessage(text || "Something went wrong. Please try again.");
+        setMessage(data?.message || data?.error || text || "Something went wrong. Please try again.");
         setStatus("error");
       }
     } catch (e) {
