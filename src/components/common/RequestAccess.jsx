@@ -21,7 +21,7 @@ export default function RequestAccess() {
 
     try {
       const res = await fetch(
-        "https://cp-sync-backend.onrender.com/api/request-access",
+        `${import.meta.env.VITE_API_URL}/request-access`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

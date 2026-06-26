@@ -8,13 +8,36 @@ export default function AuthCallback() {
   const [params] = useSearchParams();
 
   useEffect(() => {
-    const token = params.get("token");
-    if (token) {
-      saveToken(token);
-      navigate("/dashboard", { replace: true });
-    } else {
+    const code = params.get("code");
+
+    if (!code) {
+      // No code in URL — redirect home
       navigate("/", { replace: true });
+      return;
     }
+
+    // Exchange the one-time code for a JWT via the backend.
+    // The backend never puts the JWT directly in the URL (browser history / logs safety).
+    const apiBase = import.meta.env.VITE_API_URL;
+
+    fetch(`${apiBase}/auth/exchange`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Code exchange failed");
+        return res.json();
+      })
+      .then(({ token }) => {
+        if (token) {
+          saveToken(token);
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
+      })
+      .catch(() => navigate("/", { replace: true }));
   }, []);
 
   return (
