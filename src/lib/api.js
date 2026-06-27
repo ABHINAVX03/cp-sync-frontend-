@@ -53,4 +53,7 @@ export const api = {
   getAdminAccessRequests: () => client.get("/admin/access-requests").then((r) => r.data),
   approveAccessRequest: (id) => client.post(`/admin/approve/${id}`).then((r) => r.data),
   manualApprove: (email) => client.post("/admin/manual-approve", { email }).then((r) => r.data),
+  // Account deletion – sends email confirmation
+  deleteAccount: (email) =>
+    client.delete("/user/account", { data: { email } }).then((r) => r.data),
 };

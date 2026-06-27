@@ -32,6 +32,12 @@ export default function ProfilePage() {
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
 
+  // Delete account states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate("/", { replace: true });
@@ -92,6 +98,26 @@ export default function ProfilePage() {
     clearToken();
     navigate("/", { replace: true });
   }
+
+  // ── Delete account handler ────────────────────────────────────────
+  async function handleDeleteAccount() {
+    if (!profile?.email) return;
+    setDeleteLoading(true);
+    setDeleteError("");
+    try {
+      await api.deleteAccount(deleteEmail);
+      clearToken();
+      navigate("/", { replace: true });
+    } catch (e) {
+      setDeleteError(
+        e.response?.data?.error || e.message || "Account deletion failed. Please try again."
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
+  const emailMatches = deleteEmail === profile?.email;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -235,16 +261,11 @@ export default function ProfilePage() {
                         >
                           {enabled ? "ON" : "OFF"}
                         </span>
-
                         <Switch
                           checked={enabled}
                           disabled={saving}
                           onCheckedChange={(val) => togglePlatform(p, val)}
                           label={`Toggle ${config.label}`}
-                          className="
-      data-[state=checked]:bg-violet-600
-      data-[state=unchecked]:bg-zinc-600
-    "
                         />
                       </div>
                     </div>
@@ -253,7 +274,77 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Danger zone */}
+            {/* Danger zone – delete account */}
+            <Card className="border-red-500/20">
+              <CardContent className="p-5 space-y-4">
+                {!showDeleteConfirm ? (
+                  <>
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Delete account</p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        This will permanently delete your account, remove all synced calendar
+                        events, and erase all your data from CPSync.
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full"
+                    >
+                      Delete Account
+                    </Button>
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-destructive">
+                      This action cannot be undone.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      To confirm, type your email address <strong>{profile.email}</strong> below:
+                    </p>
+                    <input
+                      type="email"
+                      value={deleteEmail}
+                      onChange={(e) => {
+                        setDeleteEmail(e.target.value);
+                        setDeleteError("");
+                      }}
+                      placeholder="your@email.com"
+                      className="w-full h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-destructive/50"
+                    />
+                    {deleteError && (
+                      <p className="text-xs text-red-400">{deleteError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={!emailMatches || deleteLoading}
+                        loading={deleteLoading}
+                        onClick={handleDeleteAccount}
+                        className="flex-1"
+                      >
+                        {deleteLoading ? "Deleting…" : "Permanently delete"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowDeleteConfirm(false);
+                          setDeleteEmail("");
+                          setDeleteError("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Danger zone – sign out */}
             <Card className="border-red-500/20">
               <CardContent className="p-5">
                 <p className="text-sm font-semibold mb-1">Sign out</p>
