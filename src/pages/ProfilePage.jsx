@@ -343,27 +343,6 @@ export default function ProfilePage() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Danger zone – sign out */}
-            <Card className="border-red-500/20">
-              <CardContent className="p-5">
-                <p className="text-sm font-semibold mb-1">Sign out</p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  You can sign back in with Google anytime. Your calendar entries remain.
-                </p>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="w-full"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Sign out
-                </Button>
-              </CardContent>
-            </Card>
           </motion.div>
         ) : null}
       </main>
