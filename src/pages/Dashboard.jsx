@@ -84,15 +84,9 @@ export default function DashboardPage() {
     }
   }
 
+  // Issue 9: removed defensive guard. The backend returns 0 synced events if
+  // no platforms are enabled, with no error. We let it handle the logic.
   async function handleSync() {
-    if (contests.length === 0) {
-      setSyncMsg({
-        type: "error",
-        text: "Please enable at least one platform before syncing.",
-      });
-      return;
-    }
-
     setSyncing(true);
     setSyncMsg(null);
 
@@ -108,7 +102,6 @@ export default function DashboardPage() {
       const data = e.response?.data;
 
       if (status === 429) {
-        // Backend returns retryAfterSeconds in the body
         const secs = data?.retryAfterSeconds ?? 300;
         const mins = Math.ceil(secs / 60);
         setSyncMsg({

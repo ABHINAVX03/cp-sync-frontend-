@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl, isLoggedIn, clearToken, getUserEmail } from "@/lib/auth";
+import {
+  getLoginUrl,
+  isLoggedIn,
+  clearToken,
+  getUserEmail,
+  isAdmin as checkIsAdmin,
+} from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
@@ -11,7 +17,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const loggedIn = isLoggedIn();
   const userEmail = getUserEmail();
-  const isAdmin = userEmail === "guptaabhinav697@gmail.com";
+  const isAdmin = checkIsAdmin();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -71,7 +77,9 @@ export default function Navbar() {
             <>
               <Link to="/dashboard">
                 <Button
-                  variant={location.pathname === "/dashboard" ? "secondary" : "ghost"}
+                  variant={
+                    location.pathname === "/dashboard" ? "secondary" : "ghost"
+                  }
                   size="sm"
                   className="rounded-lg"
                 >
@@ -80,7 +88,9 @@ export default function Navbar() {
               </Link>
               <Link to="/profile">
                 <Button
-                  variant={location.pathname === "/profile" ? "secondary" : "ghost"}
+                  variant={
+                    location.pathname === "/profile" ? "secondary" : "ghost"
+                  }
                   size="sm"
                   className="rounded-lg"
                 >
@@ -90,7 +100,9 @@ export default function Navbar() {
               {isAdmin && (
                 <Link to="/admin">
                   <Button
-                    variant={location.pathname === "/admin" ? "secondary" : "ghost"}
+                    variant={
+                      location.pathname === "/admin" ? "secondary" : "ghost"
+                    }
                     size="sm"
                     className="rounded-lg"
                   >
@@ -191,7 +203,15 @@ function GitHubIcon() {
 
 function MenuIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="12" x2="21" y2="12" />
       <line x1="3" y1="18" x2="21" y2="18" />
@@ -201,7 +221,15 @@ function MenuIcon() {
 
 function XIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>

@@ -25,6 +25,21 @@ client.interceptors.response.use(
   }
 );
 
+/**
+ * Simple fetch‑based helper for unauthenticated POST requests.
+ * Used by pages that run before a token exists (e.g., OAuth callback,
+ * access‑request form).
+ */
+export async function publicPost(path, body) {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
 export const api = {
   // Existing endpoints
   getContests: () => client.get("/contests").then((r) => r.data),
@@ -33,7 +48,10 @@ export const api = {
     client.put("/user/platforms", { platforms }).then((r) => r.data),
   pauseSync: () => client.put("/user/pause").then((r) => r.data),
   resumeSync: () => client.put("/user/resume").then((r) => r.data),
-  triggerSync: () => client.post("/sync").then((r) => r.data),
+
+  // Sync endpoint gets a longer timeout (45 s) to accommodate backend retries & Google API latency
+  triggerSync: () =>
+    client.post("/sync", null, { timeout: 45000 }).then((r) => r.data),
 
   // Admin endpoints
   getAdminUsers: () => client.get("/admin/users").then((r) => r.data),

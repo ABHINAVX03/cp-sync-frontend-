@@ -1,6 +1,6 @@
-// src/components/common/RequestAccess.jsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { publicPost } from "@/lib/api";   // ← issue 5
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RequestAccess() {
@@ -19,34 +19,29 @@ export default function RequestAccess() {
     setStatus("loading");
     setMessage("");
 
+    // AbortController + setTimeout instead of AbortSignal.timeout (better compat)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/request-access`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-          signal: AbortSignal.timeout(30000),
-        }
-      );
-
-      const text = await res.text();
-      let data = null;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {}
-
-      if (res.ok) {
-        setMessage(data?.message || "Request received! We'll activate your account within 12 hours.");
-        setStatus("success");
-        setEmail("");
-      } else {
-        setMessage(data?.message || data?.error || text || "Something went wrong. Please try again.");
-        setStatus("error");
-      }
+      const data = await publicPost("/request-access", { email });
+      // publicPost already throws on non‑ok responses, so if we reach here it’s success
+      setMessage(data?.message || "Request received! We'll activate your account within 12 hours.");
+      setStatus("success");
+      setEmail("");
     } catch (e) {
-      setMessage("Network error. The server might be temporarily unavailable. Please try again in a moment.");
+      if (e.name === "AbortError") {
+        setMessage("Request timed out. Please try again.");
+      } else {
+        setMessage(
+          e.message === "HTTP 400" ? "Invalid email address." :
+          e.message === "HTTP 409" ? "This email is already registered or already requested." :
+          "Network error. The server might be temporarily unavailable. Please try again in a moment."
+        );
+      }
       setStatus("error");
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
