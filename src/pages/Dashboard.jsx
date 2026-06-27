@@ -64,7 +64,6 @@ export default function DashboardPage() {
     loadContests();
   }, [navigate]);
 
-  // Auto-dismiss sync message after 8 seconds
   useEffect(() => {
     if (!syncMsg) return;
     const t = setTimeout(() => setSyncMsg(null), 8000);
@@ -75,7 +74,8 @@ export default function DashboardPage() {
     setLoading(true);
     setError("");
     try {
-      const data = await api.getContests();
+      // Use authenticated endpoint that respects user's platform preferences
+      const data = await api.getMyContests();
       setContests(data || []);
     } catch (e) {
       setError(e.response?.data?.error || e.message || "Failed to load contests.");
@@ -84,12 +84,9 @@ export default function DashboardPage() {
     }
   }
 
-  // Issue 9: removed defensive guard. The backend returns 0 synced events if
-  // no platforms are enabled, with no error. We let it handle the logic.
   async function handleSync() {
     setSyncing(true);
     setSyncMsg(null);
-
     try {
       await api.triggerSync();
       setSyncMsg({
@@ -100,7 +97,6 @@ export default function DashboardPage() {
     } catch (e) {
       const status = e.response?.status;
       const data = e.response?.data;
-
       if (status === 429) {
         const secs = data?.retryAfterSeconds ?? 300;
         const mins = Math.ceil(secs / 60);
@@ -119,7 +115,6 @@ export default function DashboardPage() {
     }
   }
 
-  // Platform counts for the filter pill badges
   const platformCounts = useMemo(() => {
     const counts = {};
     contests.forEach((c) => {
@@ -128,7 +123,6 @@ export default function DashboardPage() {
     return counts;
   }, [contests]);
 
-  // Filtered list based on search + platform
   const filteredContests = useMemo(() => {
     return contests.filter((c) => {
       const matchSearch = !search || c.name?.toLowerCase().includes(search.toLowerCase());
@@ -165,7 +159,6 @@ export default function DashboardPage() {
             >
               <div className="absolute inset-0 grid-bg opacity-20" />
               <div className="absolute h-full w-full animate-pulse bg-primary/10 blur-[60px]" />
-
               <div className="relative z-10 mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 border border-primary/30">
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -185,7 +178,6 @@ export default function DashboardPage() {
                   </svg>
                 </motion.div>
               </div>
-
               <h3 className="relative z-10 text-xl font-black text-foreground">
                 Syncing to Calendar
               </h3>
@@ -273,7 +265,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Sync message — success or error (including 429 rate limit) */}
+        {/* Sync message */}
         <AnimatePresence>
           {syncMsg && (
             <motion.div
@@ -388,7 +380,7 @@ export default function DashboardPage() {
   );
 }
 
-// ── Icons ─────────────────────────────────────────────────────────────────────
+// ── Icons ──
 
 function RefreshIcon({ className = "" }) {
   return (

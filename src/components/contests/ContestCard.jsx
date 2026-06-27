@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,9 +15,15 @@ export default function ContestCard({ contest, index = 0 }) {
     short: "??",
   };
 
+  // Live countdown – re-render every 30 seconds
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const timeFromNow = getTimeFromNow(contest.startTime);
-  const isSoon =
-    new Date(contest.startTime) - new Date() < 86400000 * 2;
+  const isSoon = new Date(contest.startTime) - now < 86400000 * 2;
 
   return (
     <motion.div

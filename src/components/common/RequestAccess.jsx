@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { publicPost } from "@/lib/api";   // ← issue 5
+import { publicPost } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RequestAccess() {
@@ -19,13 +19,11 @@ export default function RequestAccess() {
     setStatus("loading");
     setMessage("");
 
-    // AbortController + setTimeout instead of AbortSignal.timeout (better compat)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
-      const data = await publicPost("/request-access", { email });
-      // publicPost already throws on non‑ok responses, so if we reach here it’s success
+      const data = await publicPost("/request-access", { email }, controller.signal);
       setMessage(data?.message || "Request received! We'll activate your account within 12 hours.");
       setStatus("success");
       setEmail("");
