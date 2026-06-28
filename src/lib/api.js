@@ -39,9 +39,17 @@ export async function publicPost(path, body, signal) {
   return res.json();
 }
 
+// Longer timeout for contest endpoints — parallel fetches on cold caches
+// can legitimately take 20–40 seconds on free‑tier hardware.
+const CONTEST_TIMEOUT = 45_000;
+
 export const api = {
-  getContests: () => client.get("/contests").then((r) => r.data),
-  getMyContests: () => client.get("/contests/mine").then((r) => r.data),
+  // Contest endpoints with generous timeout
+  getContests: () =>
+    client.get("/contests", { timeout: CONTEST_TIMEOUT }).then((r) => r.data),
+  getMyContests: () =>
+    client.get("/contests/mine", { timeout: CONTEST_TIMEOUT }).then((r) => r.data),
+
   getProfile: () => client.get("/user/profile").then((r) => r.data),
   updatePlatforms: (platforms) =>
     client.put("/user/platforms", { platforms }).then((r) => r.data),
@@ -53,7 +61,6 @@ export const api = {
   getAdminAccessRequests: () => client.get("/admin/access-requests").then((r) => r.data),
   approveAccessRequest: (id) => client.post(`/admin/approve/${id}`).then((r) => r.data),
   manualApprove: (email) => client.post("/admin/manual-approve", { email }).then((r) => r.data),
-  // Account deletion – sends email confirmation
   deleteAccount: (email) =>
     client.delete("/user/account", { data: { email } }).then((r) => r.data),
 };
